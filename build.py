@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
-"""从 notes/*.md 生成自包含的 index.html（双击即开，离线可用）。
+"""从 notes/*.md 生成自包含的 offline.html（双击即开，离线可用）。
+
+在线版 index.html 是手维护的静态文件，运行时直接 fetch 各 md 文件，不由本脚本生成；
+新增/删除/改名笔记文件时，手动更新 index.html 顶部的 NOTE_FILES 清单即可。
 
 用法：python3 build.py
-笔记更新后重跑一次即可。只用标准库，无第三方依赖。
+只用标准库，无第三方依赖。
 """
 import glob
 import json
@@ -16,6 +19,7 @@ TEMPLATE = r"""<!doctype html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#f7f9fc">
 <title>托业错题本 · 查看器</title>
 <script>(function(){try{var t=localStorage.getItem('toeic-theme')||((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light');document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
 <style>
@@ -44,7 +48,7 @@ TEMPLATE = r"""<!doctype html>
  }
  *{box-sizing:border-box;}
  html,body{margin:0;height:100%;}
- body{font-family:var(--font-body);color:var(--ink);background:var(--paper);line-height:1.8;font-size:15.5px;-webkit-font-smoothing:antialiased;}
+ body{font-family:var(--font-body);color:var(--ink);background:var(--paper);line-height:1.8;font-size:15.5px;-webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%;text-size-adjust:100%;-webkit-tap-highlight-color:transparent;overflow-wrap:break-word;}
  .wrap{display:flex;min-height:100vh;}
 
  /* sidebar */
@@ -114,13 +118,21 @@ TEMPLATE = r"""<!doctype html>
 
  @media (max-width:820px){
    .wrap{flex-direction:column;}
-   aside{width:auto;flex:none;height:auto;position:static;border-right:none;border-bottom:1px solid var(--line);padding:16px;}
-   #nav{flex-direction:row;flex-wrap:nowrap;overflow-x:auto;margin:0;padding:2px;flex:none;}
-   .nav-item{white-space:nowrap;}
+   aside{width:auto;flex:none;height:auto;position:relative;border-right:none;border-bottom:1px solid var(--line);padding:16px 16px 12px;}
+   .brand{padding-right:92px;}
+   #search{font-size:16px;margin:14px 0 12px;}
+   #nav{flex-direction:row;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0;padding:2px 0 4px;flex:none;gap:6px;scrollbar-width:none;}
+   #nav::-webkit-scrollbar{display:none;}
+   .nav-item{white-space:nowrap;padding:9px 13px;}
    .nav-name{flex:none;}
-   .foot{display:none;}
-   main{padding:30px 22px 60px;}
-   .content h1{font-size:25px;}
+   .foot{display:block;position:absolute;top:12px;right:14px;margin:0;padding:0;border-top:none;}
+   #theme{width:auto;padding:7px 12px;}
+   main{padding:26px 18px 60px;}
+   .content h1{font-size:24px;}
+   .entry{padding:18px 16px;}
+   table{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+   thead th{white-space:normal;}
+   td code{white-space:normal;}
  }
  @media (prefers-reduced-motion:reduce){
    *{animation:none!important;transition:none!important;}
@@ -138,7 +150,7 @@ TEMPLATE = r"""<!doctype html>
  <main><div class="content" id="content"></div></main>
 </div>
 <script>
-const NOTES = __NOTES_DATA__;
+var NOTES = __NOTES_DECL__;
 
 function escapeHtml(s){
   return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
@@ -249,6 +261,10 @@ function buildNav(){
     a.onclick=function(){ openNote(k); };
     navEl.appendChild(a);
   });
+  var act=navEl.querySelector('.nav-item.active');
+  if(act && navEl.scrollWidth>navEl.clientWidth+4){
+    navEl.scrollLeft=act.offsetLeft-(navEl.clientWidth-act.offsetWidth)/2;
+  }
 }
 function highlight(rootEl,q){
   var walker=document.createTreeWalker(rootEl, NodeFilter.SHOW_TEXT, null);
@@ -291,10 +307,12 @@ function setTheme(t){
   root.setAttribute('data-theme',t);
   try{ localStorage.setItem('toeic-theme',t); }catch(e){}
   themeBtn.textContent = t==='dark' ? '☀ 浅色' : '🌙 深色';
+  var mc=document.querySelector('meta[name="theme-color"]');
+  if(mc) mc.setAttribute('content', t==='dark' ? '#0e1525' : '#f7f9fc');
 }
 themeBtn.onclick=function(){ setTheme(root.getAttribute('data-theme')==='dark'?'light':'dark'); };
 setTheme(root.getAttribute('data-theme')||'light');
-if(NOTES.length) openNote(0);
+__BOOTSTRAP__
 </script>
 </body>
 </html>
@@ -309,10 +327,12 @@ def main():
         with open(f, encoding="utf-8") as fh:
             notes.append({"name": name, "label": label, "md": fh.read()})
     data = json.dumps(notes, ensure_ascii=False).replace("<", "\\u003c")
-    html = TEMPLATE.replace("__NOTES_DATA__", data)
-    with open(os.path.join(ROOT, "index.html"), "w", encoding="utf-8") as fh:
-        fh.write(html)
-    print("index.html generated from %d notes" % len(notes))
+    offline = (TEMPLATE
+               .replace("__NOTES_DECL__", data)
+               .replace("__BOOTSTRAP__", "if(NOTES.length) openNote(0);"))
+    with open(os.path.join(ROOT, "offline.html"), "w", encoding="utf-8") as fh:
+        fh.write(offline)
+    print("offline.html generated from %d notes" % len(notes))
 
 if __name__ == "__main__":
     main()
