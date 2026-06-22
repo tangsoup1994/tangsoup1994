@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="zh" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>托业错题本 · 查看器</title>
+<script>(function(){try{var t=localStorage.getItem('toeic-theme')||((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light');document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+<style>
+ :root{
+   --paper:#f7f9fc; --surface:#ffffff; --surface-2:#eef2fa;
+   --ink:#18233f; --ink-soft:#566087; --ink-faint:#8b93ab;
+   --line:#e1e7f2; --line-soft:#eef1f8;
+   --brand:#2d4f91; --brand-deep:#21407a; --brand-soft:#e6edfa;
+   --gold:#bd8224;
+   --correct:#1f8a5b; --correct-soft:#e2f2ea; --correct-line:#bfe0cd;
+   --mark:#ffe29a; --mark-ink:#4a3a06;
+   --shadow:0 1px 2px rgba(24,35,63,.04),0 4px 16px rgba(24,35,63,.05);
+   --font-display:Georgia,"Times New Roman","Songti SC","Source Han Serif SC","Noto Serif CJK SC",STSong,SimSun,serif;
+   --font-body:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+   --font-mono:"SF Mono","Cascadia Code","JetBrains Mono",Consolas,"Liberation Mono",monospace;
+ }
+ [data-theme="dark"]{
+   --paper:#0e1525; --surface:#161f33; --surface-2:#1d2840;
+   --ink:#e8edf8; --ink-soft:#a6b0c9; --ink-faint:#6e7796;
+   --line:#283250; --line-soft:#222c47;
+   --brand:#7aa0e8; --brand-deep:#9bb8f0; --brand-soft:#1f2d4c;
+   --gold:#dcab5e;
+   --correct:#52c08c; --correct-soft:#16301f; --correct-line:#2c5640;
+   --mark:#6a5722; --mark-ink:#ffe7a8;
+   --shadow:0 1px 2px rgba(0,0,0,.2),0 6px 20px rgba(0,0,0,.28);
+ }
+ *{box-sizing:border-box;}
+ html,body{margin:0;height:100%;}
+ body{font-family:var(--font-body);color:var(--ink);background:var(--paper);line-height:1.8;font-size:15.5px;-webkit-font-smoothing:antialiased;}
+ .wrap{display:flex;min-height:100vh;}
+
+ /* sidebar */
+ aside{width:264px;flex:0 0 264px;background:var(--surface-2);border-right:1px solid var(--line);position:sticky;top:0;height:100vh;display:flex;flex-direction:column;padding:22px 16px;}
+ .brand{display:flex;align-items:center;gap:10px;padding:0 6px 4px;}
+ .brand .tick{width:6px;height:26px;border-radius:3px;background:var(--gold);flex:0 0 auto;}
+ .brand .t1{font-family:var(--font-display);font-weight:700;font-size:18px;letter-spacing:.01em;line-height:1.1;}
+ .brand .t2{font-size:11px;color:var(--ink-faint);letter-spacing:.16em;text-transform:uppercase;margin-top:2px;}
+ #search{width:100%;margin:16px 0 14px;padding:9px 12px;border:1px solid var(--line);border-radius:9px;font-size:14px;background:var(--surface);color:var(--ink);font-family:inherit;transition:border-color .15s,box-shadow .15s;}
+ #search::placeholder{color:var(--ink-faint);}
+ #search:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-soft);}
+ #nav{display:flex;flex-direction:column;gap:3px;flex:1;overflow:auto;margin:0 -4px;padding:0 4px;}
+ .nav-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:9px;color:var(--ink-soft);text-decoration:none;cursor:pointer;border:1px solid transparent;transition:background .14s,color .14s;}
+ .nav-item:hover{background:var(--brand-soft);color:var(--ink);}
+ .nav-item.active{background:var(--surface);color:var(--brand-deep);border-color:var(--line);font-weight:600;box-shadow:var(--shadow);}
+ .nav-num{font-family:var(--font-mono);font-size:11px;color:var(--ink-faint);min-width:18px;text-align:center;}
+ .nav-item.active .nav-num{color:var(--gold);}
+ .nav-name{font-size:14px;flex:1;}
+ .badge{background:var(--brand);color:#fff;font-size:11px;border-radius:999px;padding:1px 8px;font-weight:600;font-family:var(--font-mono);}
+ .foot{padding-top:12px;margin-top:8px;border-top:1px solid var(--line);}
+ #theme{width:100%;padding:8px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--ink-soft);font-family:inherit;font-size:13px;cursor:pointer;transition:background .14s,color .14s;}
+ #theme:hover{background:var(--brand-soft);color:var(--ink);}
+ #theme:focus-visible{outline:2px solid var(--brand);outline-offset:2px;}
+
+ /* main */
+ main{flex:1;min-width:0;padding:46px 56px 90px;}
+ .content{max-width:760px;margin:0 auto;animation:rise .16s ease;}
+ @keyframes rise{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+
+ .content h1{font-family:var(--font-display);font-size:30px;font-weight:700;line-height:1.2;margin:0 0 6px;letter-spacing:.01em;}
+ .content h1::after{content:"";display:block;width:46px;height:3px;border-radius:2px;background:var(--gold);margin-top:14px;}
+
+ .entry{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--brand);border-radius:14px;padding:22px 26px;margin:18px 0;box-shadow:var(--shadow);}
+ .entry h2{font-family:var(--font-display);font-size:19px;font-weight:600;color:var(--brand-deep);margin:0 0 14px;line-height:1.35;}
+ .entry > :last-child{margin-bottom:0;}
+ .content h3{font-size:16px;font-weight:600;margin:1.3em 0 .4em;}
+
+ .content p{margin:.62em 0;}
+ .content > p{color:var(--ink-soft);margin:.4em 0 1.15em;}
+ .content ul{margin:.5em 0;padding-left:1.3em;list-style:none;}
+ .content li{margin:.34em 0;position:relative;}
+ .content li::before{content:"";position:absolute;left:-1.05em;top:.72em;width:5px;height:5px;border-radius:50%;background:var(--gold);}
+ .content strong{font-weight:600;color:var(--ink);}
+
+ .content code{font-family:var(--font-mono);font-size:.85em;background:var(--surface-2);color:var(--brand-deep);padding:.12em .42em;border-radius:5px;border:1px solid var(--line);}
+
+ blockquote{margin:.9em 0;padding:.85em 1.1em;background:var(--surface-2);border-left:3px solid var(--brand);border-radius:0 10px 10px 0;color:var(--ink);font-size:.97em;}
+ [data-theme="dark"] blockquote{background:var(--paper);}
+
+ p.answer{display:inline-block;margin:.85em 0;padding:.32em .9em;background:var(--correct-soft);color:var(--correct);border:1px solid var(--correct-line);border-radius:999px;font-size:.93rem;line-height:1.4;}
+ p.answer::before{content:"✓";font-weight:700;margin-right:.45em;}
+ p.answer strong{color:var(--correct);}
+
+ /* tri-line / booktabs table */
+ table{border-collapse:collapse;width:100%;margin:1.1em 0;font-size:14px;}
+ thead th{text-align:left;font-weight:600;color:var(--ink-soft);font-size:12.5px;letter-spacing:.02em;padding:6px 14px 9px;border-bottom:2px solid var(--brand);white-space:nowrap;}
+ tbody td{padding:10px 14px;border-bottom:1px solid var(--line-soft);vertical-align:top;}
+ tbody tr:last-child td{border-bottom:none;}
+ tbody tr:hover td{background:var(--surface-2);}
+ td code{white-space:nowrap;}
+
+ mark{background:var(--mark);color:var(--mark-ink);padding:0 2px;border-radius:3px;}
+ a{color:var(--brand);text-decoration:none;border-bottom:1px solid var(--brand-soft);}
+ a:hover{border-bottom-color:var(--brand);}
+ .empty{color:var(--ink-faint);padding:2em 0;}
+ :focus-visible{outline:2px solid var(--brand);outline-offset:2px;border-radius:4px;}
+
+ @media (max-width:820px){
+   .wrap{flex-direction:column;}
+   aside{width:auto;flex:none;height:auto;position:static;border-right:none;border-bottom:1px solid var(--line);padding:16px;}
+   #nav{flex-direction:row;flex-wrap:nowrap;overflow-x:auto;margin:0;padding:2px;flex:none;}
+   .nav-item{white-space:nowrap;}
+   .nav-name{flex:none;}
+   .foot{display:none;}
+   main{padding:30px 22px 60px;}
+   .content h1{font-size:25px;}
+ }
+ @media (prefers-reduced-motion:reduce){
+   *{animation:none!important;transition:none!important;}
+ }
+</style>
+</head>
+<body>
+<div class="wrap">
+ <aside>
+   <div class="brand"><span class="tick"></span><span><span class="t1">托业错题本</span><span class="t2">TOEIC Review</span></span></div>
+   <input id="search" type="search" placeholder="跨笔记搜索…" autocomplete="off" aria-label="搜索笔记">
+   <nav id="nav"></nav>
+   <div class="foot"><button id="theme" type="button">🌙 深色</button></div>
+ </aside>
+ <main><div class="content" id="content"></div></main>
+</div>
+<script>
+const NOTES = [{"name": "01_错题本.md", "label": "01 错题本", "md": "# 01 错题本\n\n完整题目存档 + 解析，是其他笔记的索引源。每题给一个递增编号（如 `#012`），**新题追加在最后、编号递增**；其他笔记用这个编号回链到具体某题。\n\n\u003c!-- 新增题目时，复制下面这段模板到本注释下方填写；模板本身保留，供下次使用。\n\n## #编号 · Part X · 一句话考点\n\n**题目**\n> 题干 ……（空格用 ___ 表示）\n> (A) …　(B) …　(C) …　(D) …\n\n**译文**：题干中文翻译（填空题代入正确答案译整句）。\n\n**答案**：X\n\n**解析**\n- 考点：这道题在考什么。\n- 正确项：X 为什么对。\n- 干扰项：(A) 为什么错；(B) 为什么错；(D) 为什么错。\n- 听力题补充：连读 / 弱读、同义替换、场景信号词。\n\n**关联笔记**：02 `word`、03 `phrase` …（写到哪些文件就标哪些）\n\n-->\n\n## #001 · Part 5 · 介词短语 prior to 表「在……之前」\n\n**题目**\n> The workshop materials will be sent to participants at least ten business days ___ the scheduled session.\n> (A) in case　(B) as much　(C) prior to　(D) by then\n\n**译文**：研讨会材料会在预定场次至少十个工作日前发送给参会者。\n\n**答案**：C\n\n**解析**\n- 考点：空格后是名词短语 `the scheduled session`，需要一个能带名词宾语、表「在……之前」的介词（短语）。\n- 正确项 C：`prior to` = before，`ten business days prior to the scheduled session` 意为「预定会议前十个工作日」。\n- 干扰项：(A) `in case` 是连词，要接句子或写成 `in case of + 名词`，义为「以防」，这里接不了名词也不通；(B) `as much` 是数量副词短语，不能连接名词；(D) `by then`（到那时）是副词短语，后面不能直接跟名词。\n\n**关联笔记**：02 `business day`；03 `prior to`、`in case (of)`；04 介词 vs 连词 vs 副词\n\n## #002 · Part 5 · rapid expansion 表「快速扩张」\n\n**题目**\n> The Apparel Boutique has seen ___ expansion in East Asia due to the popularity of its clothing lines.\n> (A) loud　(B) rapid　(C) bright　(D) proud\n\n**译文**：由于其服装系列很受欢迎，The Apparel Boutique 在东亚经历了快速扩张。\n\n**答案**：B\n\n**解析**\n- 考点：空格修饰名词 `expansion`，要选能表示「扩张速度 / 增长速度」的形容词。\n- 正确项 B：`rapid` 表「快速的」，能修饰增长、扩张、变化等商业抽象名词；`has seen rapid expansion` 意为「经历了快速扩张」。\n- 干扰项：(A) `loud` 表声音大，或颜色 / 风格醒目，不能修饰 `expansion`；(C) `bright` 表明亮、聪明或前景光明，常修饰 `light / color / future / prospect`，不表示扩张速度；(D) `proud` 表自豪的，通常用于人或组织，如 `be proud of`，不能修饰 `expansion`。\n\n**关联笔记**：02 `rapid`、`expansion`、`popularity`；03 `rapid expansion`、`due to + 名词`；07 `rapid / bright / loud / proud`\n\n## #003 · Part 5 · 动词前缺主语用主格代词\n\n**题目**\n> Here at Auto Empire, ___ always put quality service and customer care first.\n> (A) ourselves　(B) ours　(C) we　(D) us\n\n**译文**：在 Auto Empire，我们始终把优质服务和客户关怀放在首位。\n\n**答案**：C\n\n**解析**\n- 考点：逗号后的谓语是 `put`，空格处要作句子主语，所以需要主格代词。\n- 正确项 C：`we` 是主格，可作主语，和 `always put` 构成完整主谓结构。\n- 干扰项：(A) `ourselves` 是反身代词，不能单独作主语；(B) `ours` 是名词性物主代词，表示「我们的东西」，不能作执行 `put` 的主语；(D) `us` 是宾格，不能放在谓语动词前作主语。\n\n**关联笔记**：03 `put + 宾语 + first`；04 主格代词作主语；06 `put quality service and customer care first`\n\n## #004 · Part 5 · the largest of all 表最高级范围\n\n**题目**\n> The store that Ms. Goh manages is the ___ of all the company’s retail locations.\n> (A) large　(B) larger　(C) largely　(D) largest\n\n**译文**：Goh 女士管理的那家商店是公司所有零售点中最大的。\n\n**答案**：D\n\n**解析**\n- 考点：`the ___ of all ...` 给出「所有……之中」的范围，空格处要用形容词最高级。\n- 正确项 D：`largest` 是 `large` 的最高级，`the largest of all the company’s retail locations` 表示「所有零售点中最大的」。\n- 干扰项：(A) `large` 是原级，只表示「大」，不能表达三者及以上范围内的最高程度；(B) `larger` 是比较级，通常用于两者比较或和 `than` 搭配，不符合 `of all` 的范围；(C) `largely` 是副词，表示「主要地 / 很大程度上」，不能放在 `the` 后作名词化最高级。\n\n**关联笔记**：04 `the + 最高级 + of all`；06 `retail locations`；07 `large / larger / largely / largest`\n\n## #005 · Part 5 · 句子缺谓语：主语后选限定动词（过去式 suggested）\n\n**题目**\n> After several consecutive days of delays due to bad weather, the director ___ filming the scene inside the studio.\n> (A) suggesting　(B) suggest　(C) suggestion　(D) suggested\n\n**译文**：连续几天因恶劣天气延误之后，导演建议在摄影棚内拍摄这个场景。\n\n**答案**：D\n\n**解析**\n- 考点：主语 `the director` 之后缺谓语动词，要选能作谓语的限定动词，再核对主谓一致与时态。\n- 正确项 D：`suggested` 是过去式，可作谓语且不受人称影响；时间状语 `After several consecutive days of delays`（连续几天延误之后）表明动作已发生，用过去时。\n- 干扰项：(A) `suggesting` 是现在分词，前面没有 be 动词，不能单独作谓语；(B) `suggest` 是动词原形，主语是第三人称单数，一般现在时须用 `suggests`，原形与主语不一致；(C) `suggestion` 是名词，不能作谓语。\n\n**关联笔记**：02 `consecutive`、`delay`；03 `suggest doing sth`；04 句子缺谓语用限定动词\n\n## #006 · Part 5 · 所有格后缺主语名词用 teachers\n\n**题目**\n> Singh Design Institute’s ___ are active professionals who have worked in the industry for many years.\n> (A) teach　(B) taught　(C) teaching　(D) teachers\n\n**译文**：Singh Design Institute 的教师都是活跃的专业人士，他们已在该行业工作多年。\n\n**答案**：D\n\n**解析**\n- 考点：空格前是所有格 `Singh Design Institute’s`，空格后是复数谓语 `are`，这里需要一个复数名词作主语。\n- 正确项 D：`teachers` 是复数名词，能和 `are active professionals` 构成主谓一致。\n- 干扰项：(A) `teach` 是动词原形，不能放在所有格后作名词主语；(B) `taught` 是过去式 / 过去分词，不能作复数主语；(C) `teaching` 可作动名词或现在分词，但不表示一群人，且不能和复数谓语 `are` 搭配。\n\n**关联笔记**：02 `professional`、`industry`；03 `work in the industry`；04 所有格后缺主语名词；06 `active professionals`；07 `teach / taught / teaching / teachers`\n\n## #007 · Part 5 · due to 后接名词短语表原因\n\n**题目**\n> ___ the heavy rain this morning, the city’s subway system is experiencing delays.\n> (A) While　(B) Because　(C) Due to　(D) Assuming\n\n**译文**：由于今天早上的大雨，该市的地铁系统正在出现延误。\n\n**答案**：C\n\n**解析**\n- 考点：空格后是名词短语 `the heavy rain this morning`，需要能接名词短语并表示原因的介词短语。\n- 正确项 C：`Due to + 名词短语` 表「由于……」，能直接接 `the heavy rain this morning` 作原因状语。\n- 干扰项：(A) `While` 是连词，后面要接主谓完整的句子，且常表「当……时 / 虽然」；(B) `Because` 是连词，后面要接句子，不能直接接名词短语；(D) `Assuming` 表「假设」，通常引出条件，不表示既成事实的原因。\n\n**关联笔记**：02 `delay`；03 `due to + 名词`、`heavy rain`、`experience delays`；04 介词 vs 连词；06 `subway system is experiencing delays`\n\n## #008 · Part 5 · so powerful that 表「如此……以至于」\n\n**题目**\n> Our new electric saw is ___ powerful that it can cut sheets of metal up to one centimeter thick.\n> (A) often　(B) so　(C) quite　(D) too\n\n**译文**：我们的新电锯非常强劲，能切割厚达一厘米的金属板。\n\n**答案**：B\n\n**解析**\n- 考点：空格后是形容词 `powerful`，后面还有 `that + 句子` 表结果，需要 `so + 形容词 + that` 结构。\n- 正确项 B：`so powerful that it can cut ...` 表「强劲到能够切割……」，`so` 和 `that` 呼应，连接程度与结果。\n- 干扰项：(A) `often` 是频率副词，不能修饰 `powerful` 表结果；(C) `quite` 可表示「相当」，但不能和后面的 `that` 构成结果结构；(D) `too` 常用 `too + 形容词 + to do` 表「太……以至于不能 / 不适合」，不能接这里的 `that` 结果句。\n\n**关联笔记**：02 `saw`、`powerful`、`metal`；03 `so + adj. + that`、`up to + 数量`；04 `so ... that` 结果状语结构；06 产品性能表达；07 `often / so / quite / too`\n\n## #009 · Part 5 · financial specialist 表财务专员\n\n**题目**\n> The Langdon Company’s financial ___, Richard Bigsby, handles all budgetary decisions.\n> (A) special　(B) specialization　(C) specialize　(D) specialist\n\n**译文**：The Langdon Company 的财务专员 Richard Bigsby 负责处理所有预算决策。\n\n**答案**：D\n\n**解析**\n- 考点：`financial` 是形容词，后面要接名词；逗号中的 `Richard Bigsby` 是人名同位语，说明空格处应是表示人的职位名词。\n- 正确项 D：`specialist` 表「专员 / 专家」，`financial specialist` 是能指人的职位名词，和后面的单数谓语 `handles` 一致。\n- 干扰项：(A) `special` 是形容词，不能被 `financial` 修饰后再作主语名词；(B) `specialization` 是抽象名词，表示「专业化 / 专长」，不能和人名 `Richard Bigsby` 构成同位关系；(C) `specialize` 是动词，不能放在形容词 `financial` 后作名词。\n\n**关联笔记**：02 `financial`、`specialist`、`budgetary`；03 `financial specialist`、`handle budgetary decisions`；04 形容词后接名词；06 财务职责表达；07 `special / specialization / specialize / specialist`\n\n## #010 · Part 5 · an expert in 表「某领域专家」\n\n**题目**\n> Belmond College is excited to announce that this month’s guest speaker is Joshua Ramsey, an ___ in climate science.\n> (A) expertise　(B) expert　(C) expertly　(D) experts\n\n**译文**：Belmond College 很高兴宣布，本月的嘉宾演讲者是气候科学专家 Joshua Ramsey。\n\n**答案**：B\n\n**解析**\n- 考点：空格前有冠词 `an`，后面有介词短语 `in climate science` 修饰身份，空格处需要单数可数名词。\n- 正确项 B：`expert` 是表示人的单数名词，`an expert in climate science` 表示「气候科学专家」，可作 `Joshua Ramsey` 的同位语。\n- 干扰项：(A) `expertise` 是不可数抽象名词，表示专业知识，不指人，不能和 `an` 搭配；(C) `expertly` 是副词，不能放在冠词后作名词；(D) `experts` 是复数名词，前面不能用单数冠词 `an`。\n\n**关联笔记**：02 `announce`、`guest speaker`、`expert`、`expertise`；03 `be excited to announce that`、`expert in + 领域`；04 `an + 单数可数名词`；06 嘉宾演讲通知；07 `expertise / expert / expertly / experts`\n\n## #011 · Part 5 · 过去分词 established 作后置定语\n\n**题目**\n> The EGW is a new environmental agency ___ to address the city’s pollution problem.\n> (A) establish　(B) established　(C) establishing　(D) was established\n\n**译文**：EGW 是一个为解决该市污染问题而成立的新环保机构。\n\n**答案**：B\n\n**解析**\n- 考点：句子已有谓语 `is`，空格在名词 `agency` 后面，需要非谓语形式作后置定语，说明这个机构「被成立」的目的。\n- 正确项 B：`established` 是过去分词，表示被动关系，相当于 `an agency that was established to address ...`。\n- 干扰项：(A) `establish` 是动词原形，不能直接放在名词后作定语；(C) `establishing` 是现在分词，表示主动关系，会变成「机构正在成立……」，不合逻辑；(D) `was established` 是完整谓语，前面已有 `is`，会造成一个句子里出现两个谓语且没有连接词。\n\n**关联笔记**：02 `environmental`、`agency`、`establish`、`pollution`；03 `environmental agency`、`be established to do sth`、`address a problem`；04 过去分词作后置定语；06 环境治理表达；07 `establish / established / establishing / was established`\n\n## #012 · Part 5 · designated parking space 表「指定停车位」\n\n**题目**\n> Each employee is expected to use their ___ parking space.\n> (A) designating　(B) designated　(C) designation　(D) designate\n\n**译文**：每位员工都应使用自己的指定停车位。\n\n**答案**：B\n\n**解析**\n- 考点：空格后是名词短语 `parking space`，前面已有物主限定词 `their`，空格处要用能修饰名词的形容词性成分。\n- 正确项 B：`designated` 是过去分词形容词，表示「指定的」，`designated parking space` 是固定常见搭配。\n- 干扰项：(A) `designating` 是现在分词，表示主动动作，像「正在指定的停车位」，不合逻辑；(C) `designation` 是名词，不能直接放在 `parking space` 前表达「指定的」；(D) `designate` 是动词原形，不能作名词前定语。\n\n**关联笔记**：02 `employee`、`designate`、`parking space`；03 `be expected to do sth`、`designated parking space`；04 过去分词作前置定语；06 员工停车规则；07 `designating / designated / designation / designate`\n\n## #013 · Part 5 · through the holiday season 表持续贯穿假期\n\n**题目**\n> The current upward trend in sales is likely to continue ___ the upcoming holiday season.\n> (A) whenever　(B) through　(C) including　(D) once\n\n**译文**：目前销售额的上升趋势很可能会持续整个即将到来的假日季。\n\n**答案**：B\n\n**解析**\n- 考点：空格后是名词短语 `the upcoming holiday season`，句意需要表示趋势持续贯穿某一时间段。\n- 正确项 B：`through + 时间段` 表「贯穿……期间 / 直到……结束」，`continue through the upcoming holiday season` 表示「持续整个即将到来的假日季」。\n- 干扰项：(A) `whenever` 是连词，后面要接主谓完整的句子，不能直接接名词短语；(C) `including` 表「包括」，用于列举包含对象，不表示持续时间；(D) `once` 是连词或副词，作连词时也要接句子，且语义是「一旦」。\n\n**关联笔记**：02 `trend`、`upward`、`sales`、`upcoming`；03 `upward trend in sales`、`be likely to do sth`、`continue through + 时间段`；04 介词 vs 连词；06 销售趋势表达；07 `whenever / through / including / once`\n"}, {"name": "02_高频词汇.md", "label": "02 高频词汇", "md": "# 02 高频词汇\n\n单词的词性、释义、来自题目的例句，以及易混词提示。已记过的词只在「易混词 / 提示」或例句列补充，不重复建行。\n\n| 单词 | 词性 | 释义 | 题中例句（英文原文） | 易混词 / 提示 |\n|------|------|------|----------------------|----------------|\n| business day | n. | 工作日（不含周末与节假日） | at least ten business days prior to the scheduled session | 不是「商务日」；表期限常与 prior to / before / after 搭配 |\n| rapid | adj. | 快速的，迅速的 | has seen rapid expansion in East Asia | 常修饰 expansion / growth / change 等表示发展变化的名词；本题不能用 bright |\n| expansion | n. | 扩张，扩大，发展 | rapid expansion in East Asia | 商业语境常指市场、业务、门店、地区覆盖的扩大 |\n| popularity | n. | 受欢迎，流行 | due to the popularity of its clothing lines | `due to + 名词` 表原因；popularity 说明扩张原因，不决定选 bright |\n| consecutive | adj. | 连续的，接连的 | After several consecutive days of delays due to bad weather | 常修饰 days / years / wins 等表数量或时间的名词 |\n| delay | n./v. | 延误，推迟 | several consecutive days of delays due to bad weather；the city’s subway system is experiencing delays | 作名词时可数，常用复数 delays 表多处 / 多次延误；作动词时搭配 delay doing |\n| professional | n./adj. | 专业人士；专业的 | are active professionals who have worked in the industry for many years | 作名词指有专业技能或从业经验的人；本题用复数 professionals |\n| industry | n. | 行业，产业 | worked in the industry for many years | `the industry` 指前文语境中的行业；常与 work in 搭配 |\n| saw | n. | 锯 | Our new electric saw is so powerful | `electric saw` 是电锯；不要误看成 see 的过去式 saw |\n| powerful | adj. | 强劲的，功率大的 | so powerful that it can cut sheets of metal | 产品性能语境中常形容机器、工具、设备能力强 |\n| metal | n. | 金属 | sheets of metal up to one centimeter thick | `sheets of metal` 指金属板 / 金属片 |\n| financial | adj. | 财务的，金融的 | The Langdon Company’s financial specialist | 常修饰 report / decision / specialist / department 等财务相关名词 |\n| specialist | n. | 专员，专家 | financial specialist, Richard Bigsby | 表示具有专门职责或专业知识的人；词尾 `-ist` 常指人 |\n| budgetary | adj. | 预算的 | handles all budgetary decisions | 常修饰 decisions / constraints / planning 等预算相关名词 |\n| announce | v. | 宣布，告知 | is excited to announce that this month’s guest speaker is Joshua Ramsey | 后面常接 `that + 句子` 表宣布的内容 |\n| guest speaker | n. | 嘉宾演讲者，特邀讲者 | this month’s guest speaker is Joshua Ramsey | 学校、会议、活动通知中的常见表达 |\n| expert | n./adj. | 专家；熟练的 | an expert in climate science | 作名词指人，是可数名词；本题受 `an` 限定用单数 |\n| expertise | n. | 专业知识，专长 | —（本题干扰项 A） | 不可数抽象名词，不指专家本人；不能写成 `an expertise in ...` |\n| environmental | adj. | 环境的，环保的 | a new environmental agency | 常修饰 agency / policy / issue / impact 等环境相关名词 |\n| agency | n. | 机构，部门 | a new environmental agency established to address the city’s pollution problem | 可指政府、公共或专业机构 |\n| establish | v. | 成立，建立 | a new environmental agency established to address the city’s pollution problem | 本题用过去分词 `established` 作后置定语，表示被成立 |\n| pollution | n. | 污染 | the city’s pollution problem | 不可数名词；作定语时可用于 `pollution problem` |\n| employee | n. | 员工，雇员 | Each employee is expected to use their designated parking space | 指受雇于公司的人员，区别于 employer「雇主」 |\n| designate | v. | 指定，选定 | their designated parking space | 本题用过去分词 `designated` 作形容词，表示「被指定的」 |\n| parking space | n. | 停车位 | designated parking space | 也可说 parking spot；公司场景常涉及员工停车位 |\n| trend | n. | 趋势，走向 | The current upward trend in sales | 常与 upward / downward / current 搭配，表示数据变化方向 |\n| upward | adj. | 向上的，上升的 | upward trend in sales | 常修饰 trend / movement，表示数据或数量上升 |\n| sales | n. | 销售额，销售 | upward trend in sales | 商务语境中常指销售额或销售表现 |\n| upcoming | adj. | 即将到来的 | the upcoming holiday season | 常修饰 event / meeting / season / launch 等 |\n"}, {"name": "03_固定搭配.md", "label": "03 固定搭配", "md": "# 03 固定搭配\n\n动词与介词的搭配、固定短语。介词是 Part 5 高频考点，重点记「哪个词配哪个介词」。\n\n| 搭配 / 短语 | 含义 | 题中例句（英文原文） | 备注 |\n|-------------|------|----------------------|------|\n| prior to + 名词 | 在……之前（= before） | ten business days prior to the scheduled session | 介词短语，后接名词；Part 5 常用它替换 before |\n| in case / in case of | in case + 句子、in case of + 名词：以防、万一 | —（本题干扰项 A） | 是连词 / 介词短语，义为「以防」，与「之前」无关，别和 prior to 混 |\n| rapid expansion | 快速扩张 | has seen rapid expansion in East Asia | 形容词 + 名词搭配；说扩张速度快，不用 bright / loud / proud |\n| due to + 名词 | 由于，因为 | due to the popularity of its clothing lines；Due to the heavy rain this morning | `due to` 后接名词或名词短语；如果后面是完整句子才用 because / while 等连词 |\n| put + 宾语 + first | 把……放在首位，优先考虑…… | put quality service and customer care first | 商务服务理念常用表达；`first` 表优先级 |\n| suggest doing sth | 建议做某事（suggest 后接动名词，不接 to do） | the director suggested filming the scene inside the studio | filming 是 suggest 的动名词宾语 |\n| work in the industry | 在该行业工作 | have worked in the industry for many years | `industry` 前用 `the` 指特定行业；现在完成时强调经验延续到现在 |\n| heavy rain | 大雨 | the heavy rain this morning | `heavy` 可修饰 rain / traffic / workload 等，表示程度大 |\n| experience delays | 出现 / 遭遇延误 | the city’s subway system is experiencing delays | 交通、物流、项目进度场景常用；主语通常是系统、航班、服务或项目 |\n| so + adj. + that + 句子 | 如此……以至于…… | so powerful that it can cut sheets of metal | `so` 修饰形容词 / 副词，`that` 后接结果句 |\n| up to + 数量 | 多达，最高达到 | up to one centimeter thick | 用于说明上限、规格或能力范围 |\n| financial specialist | 财务专员 / 财务专家 | financial specialist, Richard Bigsby | `financial` 修饰表示人的职位名词 `specialist` |\n| handle budgetary decisions | 处理预算决策 | handles all budgetary decisions | `handle` 可表示负责处理事务、决策、问题 |\n| be excited to announce that + 句子 | 很高兴宣布…… | is excited to announce that this month’s guest speaker is Joshua Ramsey | 公告、活动通知常用开头，`that` 后接完整句子 |\n| expert in + 领域 | 某领域的专家 | an expert in climate science | `expert` 指人；`in` 后接专业领域 |\n| environmental agency | 环保机构，环境机构 | a new environmental agency | `environmental` 修饰机构类型 |\n| be established to do sth | 被成立来做某事 | a new environmental agency established to address the city’s pollution problem | 常用过去分词 `established` 后接不定式表目的 |\n| address a problem | 处理 / 解决问题 | address the city’s pollution problem | `address` 在商务和公共事务语境中常表示着手处理问题 |\n| be expected to do sth | 被期望 / 应该做某事 | Each employee is expected to use their designated parking space | 规章、通知、岗位要求中常用，语气比 must 稍缓 |\n| designated parking space | 指定停车位 | their designated parking space | `designated` 作形容词，说明停车位已被分配或指定 |\n| upward trend in sales | 销售额上升趋势 | The current upward trend in sales | `in sales` 说明趋势发生在销售数据上 |\n| be likely to do sth | 很可能做某事 | is likely to continue through the upcoming holiday season | `likely` 后接不定式，表示可能性 |\n| continue through + 时间段 | 持续贯穿某段时间 | continue through the upcoming holiday season | `through` 接时间段，强调一直持续到该期间结束 |\n"}, {"name": "04_语法点.md", "label": "04 语法点", "md": "# 04 语法点\n\nPart 5/6 的语法考点：先给规则，再用题里的句子作例证。同一考点（时态、虚拟语气、分词作定语……）已存在就往下补例句，不另起新条。\n\n\u003c!-- 新增考点时，复制下面这段模板到本注释下方填写；模板本身保留，供下次使用。\n\n## 考点名（如：现在完成时 vs 一般过去时）\n\n**规则**：判断依据 / 触发信号词，一两句说清。\n\n**例证**\n- 题中句：英文原文（标出关键信号词），出处 `#编号`。\n- 为什么这么选：……\n\n-->\n\n## 介词 vs 连词 vs 副词：看空格后接什么\n\n**规则**：空格后接「名词短语」就填介词（短语）；接「句子（主谓齐全）」才填连词；只能作状语的副词短语（by then、as much）既不能带名词宾语也不能引导句子，通常是干扰项。先判断空格后是名词还是句子，再排除。\n\n**例证**\n- 题中句：at least ten business days **prior to** the scheduled session（空格后是名词 the scheduled session），出处 `#001`。\n- 为什么选 prior to：它是介词短语能带名词宾语；in case 是连词得接句子，by then、as much 是副词短语接不了名词，故全排除。\n- 题中句：**Due to** the heavy rain this morning, the city’s subway system is experiencing delays（空格后是名词短语 the heavy rain this morning），出处 `#007`。\n- 为什么选 due to：`due to` 能直接接名词短语表原因；while、because、assuming 都是连词性用法，后面要接主谓完整的句子。\n- 题中句：continue **through** the upcoming holiday season（空格后是名词短语 the upcoming holiday season），出处 `#013`。\n- 为什么选 through：`through` 是介词，可直接接时间段名词短语；whenever、once 是连词，要接句子；including 虽可接名词，但表示「包括」，不表示持续贯穿时间。\n\n## 人称代词格位：动词前缺主语用主格\n\n**规则**：空格后直接出现谓语动词，且前面没有主语时，空格处要填主格代词（I / we / he / she / they）。宾格、反身代词、名词性物主代词都不能单独作谓语动词的主语。\n\n**例证**\n- 题中句：Here at Auto Empire, **we** always put quality service and customer care first，出处 `#003`。\n- 为什么选 we：`put` 是谓语动词，前面缺主语；`we` 是主格，`ourselves / ours / us` 分别是反身代词、名词性物主代词、宾格，不能在这里作主语。\n\n## 最高级：the + 最高级 + of all\n\n**规则**：出现 `the ___ of all + 复数名词` 时，句子在比较三者及以上范围内的最高程度，空格处通常用形容词最高级。比较级只用于两者比较或有 `than` 等比较标志时。\n\n**例证**\n- 题中句：The store that Ms. Goh manages is **the largest of all** the company’s retail locations，出处 `#004`。\n- 为什么选 largest：`of all the company’s retail locations` 给出全部零售点这个范围，必须用最高级；`large` 是原级，`larger` 是比较级，`largely` 是副词。\n\n## 句子缺谓语动词：主语后选限定动词\n\n**规则**：一个分句必须有谓语动词。主语之后没有别的谓语、却给出某个词的多种形式时，要选限定动词（有时态、能作谓语）；现在分词 -ing（前面无 be）和名词都不能单独作谓语。选定后再核对主谓一致与时态。\n\n**例证**\n- 题中句：the director **suggested** filming the scene inside the studio（主语 the director 后缺谓语），出处 `#005`。\n- 为什么选 suggested：suggesting 是分词、suggestion 是名词都不能作谓语；suggest 是原形与第三人称单数主语不一致（须 suggests）；suggested 过去式作谓语、主谓一致，且 `After ... days of delays` 提示过去时。\n\n## 所有格后缺主语名词：看后面谓语单复数\n\n**规则**：名词所有格（如 `Institute’s`）后通常接名词，表示「某机构 / 某人的……」。如果空格后出现谓语动词，要让空格处名词和谓语在人称、数上匹配。\n\n**例证**\n- 题中句：Singh Design Institute’s **teachers are** active professionals，出处 `#006`。\n- 为什么选 teachers：所有格后缺名词，且后面谓语是复数 `are`，所以要用复数名词 `teachers`；`teach / taught` 是动词形式，`teaching` 不表示复数人员，不能和 `are` 搭配。\n\n## so ... that 结果状语结构\n\n**规则**：`so + 形容词 / 副词 + that + 句子` 表「如此……以至于……」，`that` 后面的句子说明前面程度造成的结果。看到形容词后紧跟 `that + 主谓`，优先考虑 `so`。\n\n**例证**\n- 题中句：Our new electric saw is **so powerful that** it can cut sheets of metal up to one centimeter thick，出处 `#008`。\n- 为什么选 so：`powerful` 是形容词，后面的 `that it can cut ...` 是结果句；`quite` 只能加强语气，不能和 `that` 呼应；`too` 通常接 `to do`；`often` 是频率副词。\n\n## 词性判断：形容词后接名词，职位名词可接人名同位语\n\n**规则**：形容词后通常接名词构成名词短语；如果名词后逗号中出现人名，这个人名常是同位语，说明前面的名词应是职位、身份或人。\n\n**例证**\n- 题中句：The Langdon Company’s **financial specialist, Richard Bigsby, handles** all budgetary decisions，出处 `#009`。\n- 为什么选 specialist：`financial` 后缺名词，`Richard Bigsby` 是人名同位语，且后面单数谓语 `handles` 需要一个单数主语；`special` 是形容词，`specialization` 是抽象名词，`specialize` 是动词。\n\n## 冠词 an 后接单数可数名词\n\n**规则**：`a / an` 后面要接单数可数名词，不能接复数名词、副词或不可数抽象名词。若空格后还有 `in + 领域`，常是在说明人的身份或专业领域。\n\n**例证**\n- 题中句：Joshua Ramsey, **an expert in** climate science，出处 `#010`。\n- 为什么选 expert：`an` 要接单数可数名词，`expert` 指人且可数；`expertise` 是不可数抽象名词，`expertly` 是副词，`experts` 是复数名词。\n\n## 过去分词作后置定语：名词与动作是被动关系\n\n**规则**：名词后需要补充说明，且名词与动作是被动关系时，可用过去分词短语作后置定语，相当于省略了 `that / which + be` 的定语从句。句子已有谓语时，不能再填完整谓语。\n\n**例证**\n- 题中句：a new environmental agency **established to address** the city’s pollution problem，出处 `#011`。\n- 为什么选 established：`agency` 是被成立的对象，`established to address ...` 相当于 `that was established to address ...`；`was established` 是完整谓语，会和前面的 `is` 冲突；`establishing` 表主动关系，不合逻辑。\n\n## 过去分词作前置定语：表示被动或完成\n\n**规则**：过去分词可放在名词前作形容词，表示被动含义或已经完成的状态。判断时看空格后是否已有名词；若需要修饰名词，通常不用动词原形、名词或主动含义的现在分词。\n\n**例证**\n- 题中句：their **designated parking space**，出处 `#012`。\n- 为什么选 designated：`parking space` 前缺修饰语，停车位是「被指定」的对象；`designating` 表主动，`designation` 是名词，`designate` 是动词原形，都不能自然修饰 `parking space`。\n"}, {"name": "05_长难句.md", "label": "05 长难句", "md": "# 05 长难句\n\nPart 7 里读不顺的长难句：拆主干、标修饰、给翻译。\n\n\u003c!-- 新增长难句时，复制下面这段模板到本注释下方填写；模板本身保留，供下次使用。\n\n## #出处编号（对应 01 错题本）\n\n**原句**\n> 英文原文\n\n**主干**：抽掉修饰后的主谓宾骨架。\n\n**修饰拆解**\n- 某从句 / 分词 / 介词短语：修饰谁，作什么成分。\n\n**翻译**：中文。\n\n-->\n"}, {"name": "06_商务场景表达.md", "label": "06 商务场景表达", "md": "# 06 商务场景表达\n\n邮件、会议、合同等商务场景的高频表达，按场景归类，方便按情境复习。\n\n| 场景 | 表达（英文原文） | 含义 / 用法 | 题中例句 |\n|------|------------------|-------------|----------|\n| 客户服务 | put quality service and customer care first | 把优质服务和客户关怀放在首位，常用于公司服务理念或品牌承诺 | Here at Auto Empire, we always put quality service and customer care first. |\n| 零售门店 | retail locations | 零售点、门店、线下销售地点；公司谈门店规模或网点分布时常用 | all the company’s retail locations |\n| 教育培训 | active professionals | 仍在行业中活跃工作的专业人士，常用于说明教师、讲师或顾问具备实务经验 | are active professionals who have worked in the industry for many years |\n| 交通通知 | subway system is experiencing delays | 地铁系统正在出现延误，常用于公共交通、通勤或运营通知 | the city’s subway system is experiencing delays |\n| 产品性能 | can cut sheets of metal up to one centimeter thick | 能切割厚达一厘米的金属板，用于说明工具、机器或设备性能 | it can cut sheets of metal up to one centimeter thick |\n| 财务职责 | handles all budgetary decisions | 负责处理所有预算决策，常用于说明财务、管理岗位职责 | Richard Bigsby, handles all budgetary decisions |\n| 活动通知 | is excited to announce that this month’s guest speaker is ... | 很高兴宣布本月嘉宾演讲者是……，用于学校、会议或活动公告 | is excited to announce that this month’s guest speaker is Joshua Ramsey |\n| 环境治理 | address the city’s pollution problem | 处理 / 解决城市污染问题，常用于政府、机构或环保项目说明 | established to address the city’s pollution problem |\n| 员工规定 | use their designated parking space | 使用自己的指定停车位，常用于公司内部规定或设施使用说明 | Each employee is expected to use their designated parking space |\n| 销售趋势 | upward trend in sales is likely to continue | 销售额上升趋势很可能继续，用于销售报告、业绩预测或市场分析 | The current upward trend in sales is likely to continue through the upcoming holiday season |\n"}, {"name": "07_易混词辨析.md", "label": "07 易混词辨析", "md": "# 07 易混词辨析\n\n形近、义近词放一起辨析，讲清区别点（词义侧重、搭配、可数性、及物性……）。\n\n| 易混词组 | 区别（侧重 / 搭配 / 用法） | 题中例句（英文原文） |\n|----------|---------------------------|----------------------|\n| rapid / bright / loud / proud | `rapid` 表速度快，能修饰 `expansion`；`bright` 表明亮、聪明或前景好，不表示扩张速度；`loud` 多指声音大或颜色醒目；`proud` 表自豪，通常修饰人或组织。 | has seen rapid expansion in East Asia |\n| large / larger / largely / largest | `large` 是原级；`larger` 是比较级；`largest` 是最高级，和 `the ... of all` 搭配；`largely` 是副词，表示「主要地 / 很大程度上」，不能作最高级形容词。 | the largest of all the company’s retail locations |\n| teach / taught / teaching / teachers | `teach` 是动词原形；`taught` 是过去式 / 过去分词；`teaching` 是动名词或现在分词，不表示复数人员；`teachers` 是复数名词，可作 `are` 的主语。 | Singh Design Institute’s teachers are active professionals |\n| often / so / quite / too | `so` 可和 `that` 构成 `so + adj. + that` 结果结构；`often` 表频率；`quite` 只表示程度，不能和 `that` 呼应；`too` 常接 `to do` 表过度。 | so powerful that it can cut sheets of metal |\n| special / specialization / specialize / specialist | `special` 是形容词；`specialization` 是抽象名词，表示专业化或专长；`specialize` 是动词；`specialist` 是表示人的名词，可作职位身份。 | financial specialist, Richard Bigsby |\n| expertise / expert / expertly / experts | `expertise` 是不可数抽象名词，表示专业知识；`expert` 是单数可数名词，指专家；`expertly` 是副词；`experts` 是复数名词，不能和 `an` 搭配。 | an expert in climate science |\n| establish / established / establishing / was established | `establish` 是动词原形；`established` 可作过去分词，表示被动后置定语；`establishing` 是现在分词，表示主动；`was established` 是完整谓语，不能放在已有谓语的句子中。 | a new environmental agency established to address the city’s pollution problem |\n| designating / designated / designation / designate | `designated` 是过去分词形容词，表示「指定的」；`designating` 是现在分词，偏主动；`designation` 是名词；`designate` 是动词原形，不能直接修饰 `parking space`。 | designated parking space |\n| whenever / through / including / once | `through` 是介词，可接时间段表示持续贯穿；`whenever` 和 `once` 是连词，后面要接句子；`including` 表包括，不表示持续时间。 | continue through the upcoming holiday season |\n"}];
+
+function escapeHtml(s){
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function inline(s){
+  s = escapeHtml(s);
+  s = s.replace(/`([^`]+)`/g, function(m,c){ return '<code>'+c+'</code>'; });
+  s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+  s = s.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+  return s;
+}
+function splitRow(line){
+  var s = line.trim();
+  if(s.charAt(0)==='|') s = s.slice(1);
+  if(s.charAt(s.length-1)==='|') s = s.slice(0,-1);
+  return s.split('|').map(function(c){ return c.trim(); });
+}
+function isTableSep(l){ return /^\s*\|?[\s:|-]+\|?\s*$/.test(l) && l.indexOf('-')>=0; }
+function renderMarkdown(md){
+  md = md.replace(/<!--[\s\S]*?-->/g, '');
+  var lines = md.split(/\r?\n/);
+  var out = [];
+  var inEntry = false;
+  var i = 0;
+  function closeEntry(){ if(inEntry){ out.push('</section>'); inEntry=false; } }
+  while(i < lines.length){
+    var line = lines[i];
+    if(line.trim()===''){ i++; continue; }
+    var h = /^(#{1,6})\s+(.*)$/.exec(line);
+    if(h){
+      var lvl=h[1].length, txt=inline(h[2].trim());
+      if(lvl===1){ closeEntry(); out.push('<h1>'+txt+'</h1>'); }
+      else if(lvl===2){ closeEntry(); out.push('<section class="entry"><h2>'+txt+'</h2>'); inEntry=true; }
+      else { out.push('<h'+lvl+'>'+txt+'</h'+lvl+'>'); }
+      i++; continue;
+    }
+    if(line.indexOf('|')>=0 && i+1<lines.length && isTableSep(lines[i+1])){
+      var header = splitRow(line);
+      i += 2;
+      var rows = [];
+      while(i<lines.length && lines[i].indexOf('|')>=0 && lines[i].trim()!==''){ rows.push(splitRow(lines[i])); i++; }
+      var t = '<table><thead><tr>';
+      header.forEach(function(c){ t += '<th>'+inline(c)+'</th>'; });
+      t += '</tr></thead><tbody>';
+      rows.forEach(function(r){
+        t += '<tr>';
+        for(var k=0;k<header.length;k++){ t += '<td>'+inline(r[k]!==undefined?r[k]:'')+'</td>'; }
+        t += '</tr>';
+      });
+      t += '</tbody></table>';
+      out.push(t);
+      continue;
+    }
+    if(/^\s*>\s?/.test(line)){
+      var bq = [];
+      while(i<lines.length && /^\s*>\s?/.test(lines[i])){ bq.push(inline(lines[i].replace(/^\s*>\s?/,''))); i++; }
+      out.push('<blockquote>'+bq.join('<br>')+'</blockquote>');
+      continue;
+    }
+    if(/^\s*[-*]\s+/.test(line)){
+      var items=[];
+      while(i<lines.length && /^\s*[-*]\s+/.test(lines[i])){ items.push('<li>'+inline(lines[i].replace(/^\s*[-*]\s+/,''))+'</li>'); i++; }
+      out.push('<ul>'+items.join('')+'</ul>');
+      continue;
+    }
+    var para=[];
+    while(i<lines.length && lines[i].trim()!=='' &&
+          !/^(#{1,6})\s+/.test(lines[i]) &&
+          !/^\s*[-*]\s+/.test(lines[i]) &&
+          !/^\s*>\s?/.test(lines[i]) &&
+          !(lines[i].indexOf('|')>=0 && i+1<lines.length && isTableSep(lines[i+1]))){
+      para.push(lines[i]); i++;
+    }
+    var raw = para.join(' ');
+    var cls = /^\s*\*\*答案\*\*/.test(raw) ? ' class="answer"' : '';
+    out.push('<p'+cls+'>'+inline(raw)+'</p>');
+  }
+  closeEntry();
+  return out.join('\n');
+}
+
+var app = { idx:0, q:'' };
+var navEl = document.getElementById('nav');
+var contentEl = document.getElementById('content');
+var searchEl = document.getElementById('search');
+var themeBtn = document.getElementById('theme');
+var root = document.documentElement;
+
+function countOcc(text,q){
+  if(!q) return 0;
+  var t=text.toLowerCase(), s=q.toLowerCase(), n=0, p=0;
+  while((p=t.indexOf(s,p))>=0){ n++; p+=s.length; }
+  return n;
+}
+function navParts(label){
+  var m=/^(\d+)\s+(.*)$/.exec(label);
+  return m ? {num:m[1], name:m[2]} : {num:'', name:label};
+}
+function buildNav(){
+  navEl.innerHTML='';
+  NOTES.forEach(function(n,k){
+    if(app.q && countOcc(n.md,app.q)===0) return;
+    var p=navParts(n.label);
+    var a=document.createElement('a');
+    a.className='nav-item'+(k===app.idx?' active':'');
+    a.innerHTML='<span class="nav-num">'+escapeHtml(p.num)+'</span><span class="nav-name">'+escapeHtml(p.name)+'</span>'+
+      (app.q?'<span class="badge">'+countOcc(n.md,app.q)+'</span>':'');
+    a.onclick=function(){ openNote(k); };
+    navEl.appendChild(a);
+  });
+}
+function highlight(rootEl,q){
+  var walker=document.createTreeWalker(rootEl, NodeFilter.SHOW_TEXT, null);
+  var nodes=[], node;
+  while(node=walker.nextNode()) nodes.push(node);
+  var ql=q.toLowerCase();
+  nodes.forEach(function(tn){
+    var txt=tn.nodeValue, low=txt.toLowerCase(), idx=low.indexOf(ql);
+    if(idx<0) return;
+    var frag=document.createDocumentFragment(), last=0;
+    while(idx>=0){
+      frag.appendChild(document.createTextNode(txt.slice(last,idx)));
+      var mk=document.createElement('mark'); mk.textContent=txt.slice(idx,idx+q.length);
+      frag.appendChild(mk);
+      last=idx+q.length;
+      idx=low.indexOf(ql,last);
+    }
+    frag.appendChild(document.createTextNode(txt.slice(last)));
+    tn.parentNode.replaceChild(frag,tn);
+  });
+}
+function openNote(k){
+  app.idx=k;
+  contentEl.innerHTML=renderMarkdown(NOTES[k].md);
+  contentEl.style.animation='none'; void contentEl.offsetWidth; contentEl.style.animation='';
+  if(app.q){ highlight(contentEl,app.q); var m=contentEl.querySelector('mark'); if(m) m.scrollIntoView({block:'center'}); }
+  buildNav();
+}
+searchEl.addEventListener('input', function(){
+  app.q=searchEl.value.trim();
+  if(app.q){
+    var first=-1;
+    for(var k=0;k<NOTES.length;k++){ if(countOcc(NOTES[k].md,app.q)>0){ first=k; break; } }
+    if(first<0){ buildNav(); contentEl.innerHTML='<p class="empty">没有找到 “'+escapeHtml(app.q)+'”</p>'; return; }
+    if(countOcc(NOTES[app.idx].md,app.q)===0) app.idx=first;
+  }
+  openNote(app.idx);
+});
+function setTheme(t){
+  root.setAttribute('data-theme',t);
+  try{ localStorage.setItem('toeic-theme',t); }catch(e){}
+  themeBtn.textContent = t==='dark' ? '☀ 浅色' : '🌙 深色';
+}
+themeBtn.onclick=function(){ setTheme(root.getAttribute('data-theme')==='dark'?'light':'dark'); };
+setTheme(root.getAttribute('data-theme')||'light');
+if(NOTES.length) openNote(0);
+</script>
+</body>
+</html>
