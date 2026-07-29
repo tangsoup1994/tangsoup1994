@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#f7f9fc">
-<title>托业错题本 · 查看器</title>
+<title>托业试题集 · 查看器</title>
 <script>(function(){try{var t=localStorage.getItem('toeic-theme')||((window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light');document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
 <style>
  :root{
@@ -68,6 +68,28 @@
  .entry{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--brand);border-radius:14px;padding:22px 26px;margin:18px 0;box-shadow:var(--shadow);}
  .entry h2{font-family:var(--font-display);font-size:19px;font-weight:600;color:var(--brand-deep);margin:0 0 14px;line-height:1.35;}
  .entry > :last-child{margin-bottom:0;}
+ .question-entry{scroll-margin-top:64px;}
+ .question-entry blockquote{margin-bottom:12px;}
+ .answer-toggle{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;min-height:42px;padding:9px 14px;border:1px solid var(--line);border-radius:8px;background:var(--surface-2);color:var(--brand-deep);font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;transition:background .14s,border-color .14s,color .14s;}
+ .answer-toggle:hover{background:var(--brand-soft);border-color:var(--brand);}
+ .answer-toggle:focus-visible{outline:2px solid var(--brand);outline-offset:2px;}
+ .answer-toggle .chevron{width:8px;height:8px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg) translate(-1px,-1px);transition:transform .16s;flex:0 0 auto;}
+ .answer-toggle[aria-expanded="true"] .chevron{transform:rotate(225deg) translate(-1px,-1px);}
+ .entry-details{padding-top:4px;}
+ .question-options{margin:.8em 0;padding:.75em 1.1em;background:var(--surface-2);border-left:3px solid var(--gold);border-radius:0 8px 8px 0;line-height:1.9;}
+ [data-theme="dark"] .question-options{background:var(--paper);}
+ .added-date{margin:-6px 0 10px;color:var(--ink-faint);font-family:var(--font-mono);font-size:12px;}
+ .added-date strong{color:inherit;font-weight:500;}
+ .date-bar{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:12px;margin:12px 0 20px;padding:9px 0;background:var(--paper);border-bottom:1px solid var(--line);}
+ .date-bar-label{flex:0 0 auto;color:var(--ink-faint);font-size:12px;font-weight:600;}
+ .date-list{display:flex;gap:5px;min-width:0;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;}
+ .date-list::-webkit-scrollbar{display:none;}
+ .date-jump{display:flex;align-items:center;gap:7px;min-height:34px;padding:6px 10px;border:0;border-bottom:2px solid transparent;background:transparent;color:var(--ink-soft);font-family:var(--font-mono);font-size:12px;white-space:nowrap;cursor:pointer;}
+ .date-jump:hover{color:var(--brand-deep);background:var(--brand-soft);}
+ .date-jump.active{color:var(--brand-deep);border-bottom-color:var(--gold);font-weight:700;}
+ .date-jump:focus-visible{outline:2px solid var(--brand);outline-offset:-2px;}
+ .date-count{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:20px;padding:0 5px;border-radius:10px;background:var(--surface-2);color:var(--ink-faint);font-size:10px;}
+ .date-jump.active .date-count{background:var(--brand-soft);color:var(--brand-deep);}
  .content h3{font-size:16px;font-weight:600;margin:1.3em 0 .4em;}
 
  .content p{margin:.62em 0;}
@@ -126,7 +148,7 @@
 <body>
 <div class="wrap">
  <aside>
-   <div class="brand"><span class="tick"></span><span><span class="t1">托业错题本</span><span class="t2">TOEIC Review</span></span></div>
+   <div class="brand"><span class="tick"></span><span><span class="t1">托业试题集</span><span class="t2">TOEIC Practice</span></span></div>
    <input id="search" type="search" placeholder="跨笔记搜索…" autocomplete="off" aria-label="搜索笔记">
    <nav id="nav"></nav>
    <div class="foot"><button id="theme" type="button">🌙 深色</button></div>
@@ -209,7 +231,8 @@ function renderMarkdown(md){
       para.push(lines[i]); i++;
     }
     var raw = para.join(' ');
-    var cls = /^\s*\*\*答案\*\*/.test(raw) ? ' class="answer"' : '';
+    var cls = /^\s*\*\*答案\*\*/.test(raw) ? ' class="answer"' :
+              (/^\s*\*\*添加日期\*\*/.test(raw) ? ' class="added-date"' : '');
     out.push('<p'+cls+'>'+inline(raw)+'</p>');
   }
   closeEntry();
@@ -270,11 +293,112 @@ function highlight(rootEl,q){
     tn.parentNode.replaceChild(frag,tn);
   });
 }
+function setQuestionExpanded(entry,expanded){
+  var details=entry.querySelector('.entry-details');
+  var button=entry.querySelector('.answer-toggle');
+  if(!details || !button) return;
+  details.hidden=!expanded;
+  button.setAttribute('aria-expanded',expanded?'true':'false');
+  button.querySelector('.toggle-label').textContent=expanded?'收起解析':'显示解析';
+}
+function setupDateBar(entries){
+  var groups={};
+  var dates=[];
+  entries.forEach(function(entry){
+    var dateEl=entry.querySelector('.added-date');
+    if(!dateEl) return;
+    var match=/\d{4}-\d{2}-\d{2}/.exec(dateEl.textContent);
+    if(!match) return;
+    var date=match[0];
+    entry.dataset.addedDate=date;
+    if(!groups[date]){ groups[date]=[]; dates.push(date); }
+    groups[date].push(entry);
+  });
+  if(!dates.length) return;
+
+  var bar=document.createElement('div');
+  bar.className='date-bar';
+  bar.setAttribute('aria-label','按添加日期定位试题');
+  var label=document.createElement('span');
+  label.className='date-bar-label';
+  label.textContent='日期';
+  var list=document.createElement('div');
+  list.className='date-list';
+  list.setAttribute('role','navigation');
+  list.setAttribute('aria-label','试题添加日期');
+
+  dates.forEach(function(date,index){
+    var button=document.createElement('button');
+    button.type='button';
+    button.className='date-jump'+(index===0?' active':'');
+    button.title=date+' · '+groups[date].length+' 题';
+    button.innerHTML='<span>'+escapeHtml(date.slice(5))+'</span><span class="date-count">'+groups[date].length+'题</span>';
+    button.onclick=function(){
+      list.querySelectorAll('.date-jump').forEach(function(item){ item.classList.remove('active'); });
+      button.classList.add('active');
+      groups[date][0].scrollIntoView({behavior:'smooth',block:'start'});
+    };
+    list.appendChild(button);
+  });
+
+  bar.appendChild(label);
+  bar.appendChild(list);
+  contentEl.insertBefore(bar,entries[0]);
+}
+function setupQuestionEntries(){
+  var entries=contentEl.querySelectorAll('.entry');
+  entries.forEach(function(entry){
+    var quote=entry.querySelector('blockquote');
+    if(!quote) return;
+    var optionBreak=quote.querySelector('br');
+    if(!optionBreak) return;
+
+    var options=document.createElement('div');
+    options.className='question-options';
+    var optionNode=optionBreak.nextSibling;
+    while(optionNode){
+      var nextOption=optionNode.nextSibling;
+      options.appendChild(optionNode);
+      optionNode=nextOption;
+    }
+    optionBreak.remove();
+
+    var details=document.createElement('div');
+    details.className='entry-details';
+    var detailNode=quote.nextSibling;
+    while(detailNode){
+      var nextDetail=detailNode.nextSibling;
+      details.appendChild(detailNode);
+      detailNode=nextDetail;
+    }
+
+    var button=document.createElement('button');
+    button.type='button';
+    button.className='answer-toggle';
+    button.innerHTML='<span class="toggle-label">显示解析</span><span class="chevron" aria-hidden="true"></span>';
+    button.onclick=function(){ setQuestionExpanded(entry,button.getAttribute('aria-expanded')!=='true'); };
+
+    entry.classList.add('question-entry');
+    entry.appendChild(options);
+    entry.appendChild(button);
+    entry.appendChild(details);
+    setQuestionExpanded(entry,false);
+  });
+  setupDateBar(entries);
+}
 function openNote(k){
   app.idx=k;
   contentEl.innerHTML=renderMarkdown(NOTES[k].md);
+  if(NOTES[k].name==='01_试题集.md') setupQuestionEntries();
   contentEl.style.animation='none'; void contentEl.offsetWidth; contentEl.style.animation='';
-  if(app.q){ highlight(contentEl,app.q); var m=contentEl.querySelector('mark'); if(m) m.scrollIntoView({block:'center'}); }
+  if(app.q){
+    highlight(contentEl,app.q);
+    contentEl.querySelectorAll('.entry-details mark').forEach(function(mark){
+      var entry=mark.closest('.question-entry');
+      if(entry) setQuestionExpanded(entry,true);
+    });
+    var m=contentEl.querySelector('mark'); if(m) m.scrollIntoView({block:'center'});
+  }
   buildNav();
 }
 searchEl.addEventListener('input', function(){
@@ -297,7 +421,7 @@ function setTheme(t){
 themeBtn.onclick=function(){ setTheme(root.getAttribute('data-theme')==='dark'?'light':'dark'); };
 setTheme(root.getAttribute('data-theme')||'light');
 /* 手维护：新增/删除/改名 notes/*.md 时，同步更新下面这份清单（顺序即侧栏顺序）。 */
-var NOTE_FILES = ["01_错题本.md", "02_高频词汇.md", "03_固定搭配.md", "04_语法点.md", "05_长难句.md", "06_商务场景表达.md", "07_易混词辨析.md"];
+var NOTE_FILES = ["01_试题集.md", "02_高频词汇.md", "03_固定搭配.md", "04_语法点.md", "05_长难句.md", "06_商务场景表达.md", "07_易混词辨析.md"];
 contentEl.innerHTML='<p class="empty">加载中…</p>';
 Promise.all(NOTE_FILES.map(function(fn){
   return fetch('notes/'+encodeURIComponent(fn)).then(function(r){
